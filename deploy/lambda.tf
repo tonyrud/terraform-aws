@@ -1,23 +1,20 @@
 locals {
-  lambda_function_name = "${local.prefix}-GetBreeds"
+  lambda_function_name_breed  = "${local.prefix}-${var.api_resources.breeds}-get"
+  lambda_function_name_breeds = "${local.prefix}-${var.api_resources.breeds}-list"
 }
 
-resource "aws_lambda_function" "standard-data" {
-   function_name = local.lambda_function_name
+resource "aws_lambda_function" "breeds-list" {
+  function_name = local.lambda_function_name_breeds
 
-   # The bucket name as created earlier with "aws s3api create-bucket"
-   s3_bucket = "326347646211-terraform-serverless-example"
-   s3_key    = "v1.0.0/example.zip"
+  # s3_bucket = "326347646211-terraform-serverless-example"
+  # s3_key    = "v1.0.0/example.zip"
 
-   # "main" is the filename within the zip file (main.js) and "handler"
-   # is the name of the property under which the handler function was
-   # exported in that file.
-   handler = "src/GetBreeds/index.handler"
-   runtime = "nodejs12.x"
+  handler = "src/breeds-list/index.handler"
+  runtime = var.lambda_runtime
 
-   role = aws_iam_role.lambda_exec.arn
+  role = aws_iam_role.lambda_exec.arn
 
-   depends_on = [
+  depends_on = [
     aws_iam_role_policy_attachment.lambda_logs,
     aws_cloudwatch_log_group.example,
   ]
@@ -25,12 +22,12 @@ resource "aws_lambda_function" "standard-data" {
   tags = local.common_tags
 }
 
- # IAM role which dictates what other AWS services the Lambda function
- # may access.
+# IAM role which dictates what other AWS services the Lambda function
+# may access.
 resource "aws_iam_role" "lambda_exec" {
-   name = "serverless_${var.prefix}_lambda"
+  name = "serverless_${var.prefix}_lambda"
 
-   assume_role_policy = <<EOF
+  assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -49,18 +46,18 @@ EOF
 }
 
 resource "aws_lambda_permission" "apigw" {
-   statement_id  = "AllowAPIGatewayInvoke"
-   action        = "lambda:InvokeFunction"
-   function_name = aws_lambda_function.standard-data.function_name
-   principal     = "apigateway.amazonaws.com"
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.breeds-list.function_name
+  principal     = "apigateway.amazonaws.com"
 
-   # The "/*/*" portion grants access from any method on any resource
-   # within the API Gateway REST API.
-   source_arn = "${aws_api_gateway_rest_api.example.execution_arn}/*/*"
+  # The "/*/*" portion grants access from any method on any resource
+  # within the API Gateway REST API.
+  source_arn = "${aws_api_gateway_rest_api.example.execution_arn}/*/*/*"
 }
 
 resource "aws_cloudwatch_log_group" "example" {
-  name              = "/aws/lambda/${local.lambda_function_name}"
+  name              = "/aws/lambda/${local.lambda_function_name_breeds}"
   retention_in_days = 14
 }
 
