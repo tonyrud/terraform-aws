@@ -1,5 +1,8 @@
 'use strict';
 
+const AWS = require('aws-sdk');
+const dynamo = new AWS.DynamoDB.DocumentClient();
+
 const breeds = [
   { label: 'Rabbit', abbreviation: 'RAB', key: 'rab' },
   { label: 'Bat', abbreviation: 'BAT', key: 'bat' },

@@ -2,13 +2,13 @@
 
 rm ../GetBreeds.zip
 
-zip ../GetBreeds.zip ./src/GetBreeds/* 
+zip ../breeds-list.zip ./src/breeds-list/*
 
 
 # Will fail if function has not been deployed 
 aws lambda update-function-code \
---function-name standard-data-dev-GetBreeds \
-----zip-file fileb://../GetBreeds.zip
+--function-name standard-data-dev-breeds-list \
+--zip-file fileb://../breeds-list.zip \
 --region us-east-1
 
 # S3 upload
