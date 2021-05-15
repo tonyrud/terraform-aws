@@ -17,6 +17,10 @@ provider "aws" {
 locals {
   prefix = "${var.prefix}-${terraform.workspace}"
 
+  account_id = data.aws_caller_identity.current.account_id
+
+  bucket = "${local.account_id}-${var.prefix}-${terraform.workspace}"
+
   common_tags = {
     Environment = terraform.workspace
     Project     = var.project
@@ -25,3 +29,4 @@ locals {
 }
 
 data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}

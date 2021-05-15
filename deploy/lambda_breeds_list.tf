@@ -1,13 +1,14 @@
 locals {
-  lambda_function_name_breed  = "${local.prefix}-${var.api_resources.breeds}-get"
-  lambda_function_name_breeds = "${local.prefix}-${var.api_resources.breeds}-list"
+  lambda_function_name = "${local.prefix}-${var.api_resources.breeds}-list"
 }
 
 resource "aws_lambda_function" "breeds-list" {
-  function_name = local.lambda_function_name_breeds
+  function_name = local.lambda_function_name
 
+  # TODO: build step for S3
   # s3_bucket = "326347646211-terraform-serverless-example"
   # s3_key    = "v1.0.0/example.zip"
+  filename = "../../breeds-list.zip"
 
   handler = "src/breeds-list/index.handler"
   runtime = var.lambda_runtime
@@ -20,6 +21,13 @@ resource "aws_lambda_function" "breeds-list" {
   ]
 
   tags = local.common_tags
+
+  environment {
+    variables = {
+      BUCKET = local.bucket
+      REGION = var.aws_region
+    }
+  }
 }
 
 # IAM role which dictates what other AWS services the Lambda function
@@ -45,6 +53,30 @@ EOF
 
 }
 
+# TODO limit S3 Access
+data "aws_iam_policy_document" "lambda_s3" {
+  statement {
+    actions = [
+      "s3:*",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "lambda_s3" {
+  name        = "lambda-s3-permissions"
+  description = "Contains S3 put permission for lambda"
+  policy      = data.aws_iam_policy_document.lambda_s3.json
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_s3" {
+  role       = aws_iam_role.lambda_exec.name
+  policy_arn = aws_iam_policy.lambda_s3.arn
+}
+
 resource "aws_lambda_permission" "apigw" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
@@ -57,7 +89,7 @@ resource "aws_lambda_permission" "apigw" {
 }
 
 resource "aws_cloudwatch_log_group" "example" {
-  name              = "/aws/lambda/${local.lambda_function_name_breeds}"
+  name              = "/aws/lambda/${local.lambda_function_name}"
   retention_in_days = 14
 }
 
