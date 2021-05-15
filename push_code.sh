@@ -1,14 +1,22 @@
 #!/bin/bash
+set -e
 
-rm ../GetBreeds.zip
+rm ../BreedsList.zip
+rm ../BreedsGet.zip
 
-zip ../breeds-list.zip ./src/breeds-list/*
+zip ../BreedsList.zip ./src/BreedsList/*
+zip ../BreedsGet.zip ./src/BreedsGet/*
 
 
 # Will fail if function has not been deployed 
 aws lambda update-function-code \
 --function-name standard-data-dev-breeds-list \
---zip-file fileb://../breeds-list.zip \
+--zip-file fileb://../BreedsList.zip \
+--region us-east-1
+
+aws lambda update-function-code \
+--function-name standard-data-dev-breeds-get \
+--zip-file fileb://../BreedsList.zip \
 --region us-east-1
 
 # S3 upload

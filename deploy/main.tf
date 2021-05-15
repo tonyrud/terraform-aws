@@ -1,6 +1,7 @@
 terraform {
   required_version = ">= 0.12"
 
+  # must create in AWS before running any TF commands
   backend "s3" {
     bucket         = "326347646211-standard-data-tfstate"
     key            = "standard-data/state"
@@ -12,20 +13,6 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-}
-
-locals {
-  prefix = "${var.prefix}-${terraform.workspace}"
-
-  account_id = data.aws_caller_identity.current.account_id
-
-  bucket = "${local.account_id}-${var.prefix}-${terraform.workspace}"
-
-  common_tags = {
-    Environment = terraform.workspace
-    Project     = var.project
-    ManagedBy   = "Terraform"
-  }
 }
 
 data "aws_region" "current" {}
