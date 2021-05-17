@@ -7,17 +7,22 @@ set -e
 aws lambda update-function-code \
 --function-name standard-data-dev-breeds-list \
 --zip-file fileb://deploy/code/BreedsList.zip \
---region us-east-1
 
 aws lambda update-function-code \
 --function-name standard-data-dev-breeds-get \
 --zip-file fileb://deploy/code/BreedsGet.zip \
---region us-east-1
 
 # Lambda Layer
 # aws lambda publish-layer-version \
 #     --layer-name utils \
-#     --zip-file fileb://../utils.zip
+#     --zip-file fileb://./deploy/build/utils.zip \
+#     --compatible-runtimes nodejs12.x
+
+# aws lambda update-function-configuration \
+#     --function-name standard-data-dev-breeds-get \
+#     --layers arn:aws:lambda:us-east-1:326347646211:layer:utils:7
+
+
 
 # S3 upload
 # aws s3 cp ../example.zip s3://326347646211-terraform-serverless-example/v1.0.0/example.zip

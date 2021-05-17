@@ -1,3 +1,8 @@
+const AWS = require('aws-sdk');
+// AWS.config.update({ region: process.env.REGION });
+
+const s3 = new AWS.S3();
+
 const s3SelectQuery = (query) => {
   return new Promise((resolve, reject) => {
     const params = {
@@ -31,8 +36,16 @@ const s3SelectQuery = (query) => {
         });
         data.Payload.on('end', () => {
           try {
-            const replaceLastComma = resultData.replace(/,\s*$/, '');
-            resolve(`[${replaceLastComma}]`);
+            const removeLastComma = resultData.replace(/,\s*$/, '');
+
+            // TODO: figure an easy way to find if returning a list of records
+            const isList = resultData.includes('},{');
+
+            if (isList) {
+              resolve(JSON.parse(`[${removeLastComma}]`));
+            }
+
+            resolve(JSON.parse(removeLastComma));
           } catch (e) {
             reject(
               new Error(
