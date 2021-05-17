@@ -5,10 +5,12 @@ locals {
 resource "aws_lambda_function" "BreedsList" {
   function_name = local.breeds_get_function_name
 
+  layers = [aws_lambda_layer_version.lambda_utils.arn]
+
   # TODO: build step for S3
   # s3_bucket = "326347646211-terraform-serverless-example"
   # s3_key    = "v1.0.0/example.zip"
-  filename = "../../BreedsList.zip"
+  filename = "build/BreedsList.zip"
 
   handler = "src/BreedsList/index.handler"
   runtime = var.lambda_runtime
@@ -23,7 +25,10 @@ resource "aws_lambda_function" "BreedsList" {
   tags = local.common_tags
 
   environment {
-    variables = local.lambda_env_vars
+    variables = merge(
+      local.lambda_env_vars,
+      { "QUERY_FILE" = "${var.api_resources.breeds}.csv" }
+    )
   }
 }
 

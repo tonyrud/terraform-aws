@@ -5,7 +5,9 @@ locals {
 resource "aws_lambda_function" "BreedsGet" {
   function_name = local.breeds_list_function_name
 
-  filename = "../../BreedsGet.zip"
+  layers = [aws_lambda_layer_version.lambda_utils.arn]
+
+  filename = "build/BreedsGet.zip"
 
   handler = "src/BreedsGet/index.handler"
   runtime = var.lambda_runtime
@@ -20,7 +22,10 @@ resource "aws_lambda_function" "BreedsGet" {
   tags = local.common_tags
 
   environment {
-    variables = local.lambda_env_vars
+    variables = merge(
+      local.lambda_env_vars,
+      { "QUERY_FILE" = "${var.api_resources.breeds}.csv" }
+    )
   }
 }
 

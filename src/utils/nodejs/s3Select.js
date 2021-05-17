@@ -1,39 +1,8 @@
-'use strict';
-
-const AWS = require('aws-sdk');
-AWS.config.update({ region: process.env.REGION });
-
-const s3 = new AWS.S3();
-
-const bucket = process.env.BUCKET;
-
-exports.handler = async function (event) {
-  console.log('EVENT: ', event);
-
-  const breedId = event.pathParameters.id;
-
-  try {
-    const data = await s3SelectQuery(
-      `Select * from s3Object s WHERE s.id = '${breedId}'`,
-      'breeds',
-    );
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        data,
-      }),
-    };
-  } catch (e) {
-    console.error(e);
-  }
-};
-
-const s3SelectQuery = (query, filename) => {
+const s3SelectQuery = (query) => {
   return new Promise((resolve, reject) => {
     const params = {
-      Bucket: bucket,
-      Key: `${filename}.csv`,
+      Bucket: process.env.BUCKET,
+      Key: process.env.QUERY_FILE,
       Expression: query,
       ExpressionType: 'SQL',
       InputSerialization: {
@@ -63,7 +32,7 @@ const s3SelectQuery = (query, filename) => {
         data.Payload.on('end', () => {
           try {
             const replaceLastComma = resultData.replace(/,\s*$/, '');
-            resolve(JSON.parse(replaceLastComma));
+            resolve(`[${replaceLastComma}]`);
           } catch (e) {
             reject(
               new Error(
@@ -78,3 +47,5 @@ const s3SelectQuery = (query, filename) => {
     });
   });
 };
+
+module.exports = { s3SelectQuery };
